@@ -1,13 +1,13 @@
-import { assert } from 'console';
-import * as fsPromise from 'fs/promises';
+import { assert } from "console";
+import * as fsPromise from "fs/promises";
 
 const Empty = ".";
 const Galaxy = "#";
 
 
 async function readTextFile(path: string): Promise<string> {
-  const file = await fsPromise.open(path, 'r');
-  return file.readFile({ encoding: 'utf-8' });
+  const file = await fsPromise.open(path, "r");
+  return file.readFile({ encoding: "utf-8" });
 }
 
 function parseInput(input: String): string[][] {
@@ -51,7 +51,7 @@ function numberField(field: string[][]): [string[][], Map<number, [number, numbe
 }
 
 function generateUniqueTuples(count: number): Array<[number, number]> {
-  // why Set doesn't work with tuples of arrays due to identity, is there a proper way to do this?
+  // why Set doesn"t work with tuples of arrays due to identity, is there a proper way to do this?
   const tuples = new Array<[number, number]>();
   for (let i = 0; i < count; i++) {
     for (let j = 0; j < count; j++) {
