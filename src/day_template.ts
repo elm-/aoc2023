@@ -1,13 +1,9 @@
-import { assert } from 'console';
-import * as fsPromise from 'fs/promises';
-
-const Empty = ".";
-const Galaxy = "#";
-
+import { assert } from "console";
+import * as fsPromise from "fs/promises";
 
 async function readTextFile(path: string): Promise<string> {
-  const file = await fsPromise.open(path, 'r');
-  return file.readFile({ encoding: 'utf-8' });
+  const file = await fsPromise.open(path, "r");
+  return file.readFile({ encoding: "utf-8" });
 }
 
 function parseInput(input: String): string[][] {
@@ -26,16 +22,14 @@ async function algorithm(path: string): Promise<bigint> {
 
 async function runAndCheck(path: string, expected: bigint): Promise<void> {
   const result = await algorithm(path);
-  if (result !== expected) {
-    throw new Error(`Expected ${expected} but got ${result} for file ${path}`);
-  } else {
-    console.log(`Result for file ${path} is correct: ${result}`);
-  }
+
+  assert(result == expected, `Expected ${expected} but got ${result} for file ${path}`);
+  console.log(`Result for file ${path} is correct: ${result}`);
 }
 
 
-runAndCheck("src/day11_test.txt", 374n);
-runAndCheck("src/day11_test.txt", 1030n);
+runAndCheck("inputs/day00_test.txt", 0n);
+runAndCheck("inputs/day00_test.txt", 0n);
 
-runAndCheck("src/day11.txt", 10276166n);
-runAndCheck("src/day11.txt", 598693078798n);
+runAndCheck("inputs/day00.txt", 0n);
+runAndCheck("inputs/day00.txt", 0n);
