@@ -1,9 +1,16 @@
+import { assert } from 'console';
 import * as fsPromise from 'fs/promises';
 
 const Empty = ".";
 const Galaxy = "#";
 
-function parseInput(input: String): Array<Array<String>> {
+
+async function readTextFile(path: string): Promise<string> {
+  const file = await fsPromise.open(path, 'r');
+  return file.readFile({ encoding: 'utf-8' });
+}
+
+function parseInput(input: String): string[][] {
   return input.split("\n").map((line) => {
     return line.split("").map((char) => {
       return char;
@@ -11,33 +18,24 @@ function parseInput(input: String): Array<Array<String>> {
   });
 }
 
-function expandField(field: Array<Array<String>>): Array<Array<String>> {
-  const expandedField = field.reduce((acc, cur) => {
-    acc.push(cur);
-    if (!cur.find((char) => char === Galaxy)) {
-      acc.push(Object.assign([], cur))
+function findEmpty(field: string[][]): [number[], number[]] {
+  const isLaneEmpty = (x: number, y: number, xd: number, yd: number): boolean => {
+    var isEmpty = true;
+    for (let ix = x, iy = y; ix < field.length && iy < field.length; ix += xd, iy += yd) {
+      isEmpty = isEmpty && (field[iy][ix] === Empty);
     }
-    return acc;
-  }, new Array<Array<String>>());
-  for (let x = field[0].length - 1; x > 0; x--) {
-    const isEmptyColumn = (x: number): boolean => {
-      let isEmpty = true;
-      for (let y = 0; y < field.length; y++) {
-        isEmpty = isEmpty && (field[y][x] === Empty);
-      }
-      return isEmpty;
-    }
-    if (isEmptyColumn(x)) {
-      expandedField.forEach((line) => {
-        line.splice(x, 0, Empty);
-      });
-    }
+    return isEmpty;
   }
-  return expandedField;
-
+  const hEmpty: number[] = [];
+  const vEmpty: number[] = [];
+  for (let i = 0; i < field.length; i++) {
+    if (isLaneEmpty(0, i, 1, 0)) { hEmpty.push(i); }
+    if (isLaneEmpty(i, 0, 0, 1)) { vEmpty.push(i); }
+  }
+  return [hEmpty, vEmpty];
 }
 
-function numberField(field: Array<Array<String>>): [Array<Array<String>>, Map<number, [number, number]>] {
+function numberField(field: string[][]): [string[][], Map<number, [number, number]>] {
   let count = 0;
   const galaxyMap = new Map<number, [number, number]>();
   return [field.map((line, y) => {
@@ -57,7 +55,7 @@ function generateUniqueTuples(count: number): Array<[number, number]> {
   const tuples = new Array<[number, number]>();
   for (let i = 0; i < count; i++) {
     for (let j = 0; j < count; j++) {
-      const tuple = [i, j].sort() as [number, number]
+      const tuple = sortTuple([i, j]);
       if ((i !== j) && !tuples.find((t) => t[0] === tuple[0] && t[1] === tuple[1])) {
         tuples.push(tuple);
       }
@@ -66,34 +64,48 @@ function generateUniqueTuples(count: number): Array<[number, number]> {
   return tuples;
 }
 
-function printField(field: Array<Array<String>>): void {
+function sortTuple(tuple: [number, number]): [number, number] {
+  return tuple.sort((a, b) => a - b);
+}
+
+function printField(field: string[][]): void {
   field.forEach((line) => {
     console.log(line.join(""));
   });
 }
 
-function algorithm(input: String): number {
-  const field = parseInput(input);
-  const expandedField = expandField(field);
-  const [numberedField, galaxyMap] = numberField(expandedField);
+async function algorithm(path: string, emptyFactor: number): Promise<bigint> {
+  const text = await readTextFile(path);
+  const input = parseInput(text);
+  const [hEmpty, vEmpty] = findEmpty(input);
+  const [numberedField, galaxyMap] = numberField(input);
   const tuples = generateUniqueTuples(galaxyMap.size);
   return tuples.reduce((sum, [g1, g2]) => {
     const [g1x, g1y] = galaxyMap.get(g1);
     const [g2x, g2y] = galaxyMap.get(g2);
-    return sum + Math.abs(g1x - g2x) + Math.abs(g1y - g2y);
-  }, 0);
+    const [x1, x2] = sortTuple([g1x, g2x])
+    const [y1, y2] = sortTuple([g1y, g2y]);
+    assert(x1 <= x2, `x1: ${x1} x2: ${x2}`)
+    assert(y1 <= y2, `y1: ${y1} y2: ${y2}`)
+    const vEmptyCount = vEmpty.filter((x) => x >= x1 && x <= x2).length
+    const hEmptyCount = hEmpty.filter((y) => y >= y1 && y <= y2).length
+    return sum + BigInt(Math.abs(g1x - g2x) + Math.abs(g1y - g2y) + (vEmptyCount + hEmptyCount) * (emptyFactor - 1));
+  }, 0n);
+}
+
+async function runAndCheck(path: string, expected: bigint, emptyFactor: number): Promise<void> {
+  const result = await algorithm(path, emptyFactor);
+  if (result !== expected) {
+    throw new Error(`Expected ${expected} but got ${result} for file ${path}`);
+  } else {
+    console.log(`Result for file ${path} is correct: ${result}`);
+  }
 }
 
 
-fsPromise.open('./src/day11.txt', 'r')
-  .then((file) => {
-    return file.readFile({ encoding: 'utf-8' });
-  })
-  .then((input) => {
-    const result = algorithm(input);
-    console.log(`Test 1: ${result}`);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+runAndCheck("src/day11_test.txt", 374n, 2);
+runAndCheck("src/day11_test.txt", 1030n, 10);
+runAndCheck("src/day11_test.txt", 8410n, 100);
 
+runAndCheck("src/day11.txt", 10276166n, 2);
+runAndCheck("src/day11.txt", 598693078798n, 1000000);
