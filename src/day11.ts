@@ -103,9 +103,9 @@ async function runAndCheck(path: string, expected: bigint, emptyFactor: number):
 }
 
 
-runAndCheck("src/day11_test.txt", 374n, 2);
-runAndCheck("src/day11_test.txt", 1030n, 10);
-runAndCheck("src/day11_test.txt", 8410n, 100);
+runAndCheck("inputs/day11_test.txt", 374n, 2);
+runAndCheck("inputs/day11_test.txt", 1030n, 10);
+runAndCheck("inputs/day11_test.txt", 8410n, 100);
 
-runAndCheck("src/day11.txt", 10276166n, 2);
-runAndCheck("src/day11.txt", 598693078798n, 1000000);
+runAndCheck("inputs/day11.txt", 10276166n, 2);
+runAndCheck("inputs/day11.txt", 598693078798n, 1000000);
