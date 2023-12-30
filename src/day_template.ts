@@ -32,7 +32,4 @@ async function runAndCheck(path: string, expected: bigint): Promise<void> {
 
 
 runAndCheck("inputs/day00_test.txt", 0n);
-runAndCheck("inputs/day00_test.txt", 0n);
-
-runAndCheck("inputs/day00.txt", 0n);
 runAndCheck("inputs/day00.txt", 0n);
