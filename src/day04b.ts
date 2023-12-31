@@ -10,7 +10,9 @@ type Card = {
 
 async function readTextFile(path: string): Promise<string> {
   const file = await fsPromise.open(path, "r");
-  return file.readFile({ encoding: "utf-8" });
+  const text = file.readFile({ encoding: "utf-8" });
+  await file.close();
+  return text;
 }
 
 function strToCard(str: string): number[] {
